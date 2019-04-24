@@ -25,18 +25,18 @@ Defined join values are:
 - Serial: Text strings
 
 System/local joins start at 1000 except for the case of physical buttons.  These are currently defined as:
-  Analog:
-    1000 - RSSI Strength
-    1001 - Time in mins
-    1002 - Battery gauge
-  Digital:
-    1    - Physical button 1
-    2    - Physical button 2
-    3    - Physical button 3
-    4    - Physical button 4
-    5    - Physical button 5
-    6    - Physical button 6
-    1000 - backlight on/off
+- Analog:
+    - 1000 - RSSI Strength
+    - 1001 - Time in mins
+    - 1002 - Battery gauge
+- Digital:
+    - 1    - Physical button 1
+    - 2    - Physical button 2
+    - 3    - Physical button 3
+    - 4    - Physical button 4
+    - 5    - Physical button 5
+    - 6    - Physical button 6
+    - 1000 - backlight on/off
     
 
 Objects currently supported are:
