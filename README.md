@@ -1,11 +1,11 @@
 # touch-remote
 
 Simple touch panel remote framework.
-Uses a YAML file for the touch remote configuration.
+Uses a YAML file to create the page configuration.
 The project has an example backend showing how one might create an interface to an external processor
 
 touch-remote has been created in Python 2.5 and is designed to run on a rPi + pyTft panel.
-A second hardware option will be the yio-remote https://github.com/martonborzak/yio-remote by Marton Borzak.
+A second hardware option is expected to be the yio-remote https://github.com/martonborzak/yio-remote by Marton Borzak as it uses the same basic hardware design.
 
 It is also possible to test this project on a PC if the requirements are installed.  
 Any physical buttons or other local hardware would be missing, however.
