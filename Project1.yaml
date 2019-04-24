@@ -1,0 +1,372 @@
+# Example project in YAML
+#
+# colors are ARGB
+# Global joins:
+#  Analog:
+#   1000 - RSSI Strength
+#   1001 - Time in mins
+#  Digial:
+#   
+
+project:
+ master: '192.168.160.21'
+ port: '41794'
+ idx: 22
+
+# Global defines -- Used as macros below
+ globals:
+  font-FreeSans: &font-FreeSans
+   font: 'resources/FreeSans.ttf'
+  border-black-transparent: &border-black-transparent
+   border: [0, 0, 0, 0]
+  border-blue: &border-blue
+   border: [255, 51, 102, 204]
+  bcolor-blue: &bcolor-blue
+   bcolor: [255, 51, 102, 204]
+  bcolor-yellow: &bcolor-yellow
+   bcolor: [255, 255, 153, 51]
+  bcolor-lavender: &bcolor-lavender
+   bcolor: [255, 204, 153, 204]
+  bcolor-black: &bcolor-black
+   bcolor: [255, 0, 0, 0]
+
+ page1:          # 1
+  id: 1
+  name: Top
+  bcolor: [255, 00, 00, 00]
+  join: 30
+  size: [240, 320]
+  pos: [0,0]
+  visible: true
+  pageone: true
+#  x-hair: true
+
+# Objects present on Page
+# Order in list indicates display order
+  view:
+   obj2:      # 2, header
+     id: 2
+     pos: [0,0]
+   obj7:      # 7, RSSI
+     id: 7
+     pos: [210,10]
+   obj8:      # 8, clock
+     id: 8
+     pos: [0,10]
+   obj3:      # 3, UP
+     id: 3
+     pos: [88,86]
+   obj4:      # 4, Left
+     id: 4
+     pos: [37,144]
+   obj5:      # 5, Right
+     id: 5
+     pos: [138,144]
+   obj6:      # 6, Down
+     id: 6
+     pos: [88,203]
+   obj9:      # 9, Footer 
+     id: 9
+     pos: [0,288]
+   obj10:
+     id: 10
+     pos: [10,298]
+   obj11:
+     id: 11
+     pos: [10,50]
+
+ page2:          # 1
+  id: 100
+  name: Test
+  bcolor: [255, 00, 00, 00]
+  join: 100
+  size: [240, 320]
+  pos: [0,0]
+  visible: true
+  pageone: false
+#  x-hair: true
+
+# Objects present on Page
+# Order in list indicates display order
+  view:
+   obj2:      # 2, header
+     id: 2
+     pos: [0,0]
+   obj7:      # 7, RSSI
+     id: 7
+     pos: [210,10]
+   obj8:      # 8, clock
+     id: 8
+     pos: [0,10]
+   obj3:      # 3, UP
+     id: 3
+     pos: [88,86]
+   obj4:      # 4, Left
+     id: 4
+     pos: [37,144]
+   obj5:      # 5, Right
+     id: 5
+     pos: [138,144]
+   obj6:      # 6, Down
+     id: 6
+     pos: [88,203]
+   obj9:      # 9, Footer 
+     id: 9
+     pos: [0,288]
+   obj10:
+     id: 10
+     pos: [10,298]
+   obj11:
+     id: 11
+     pos: [10,50]
+
+
+# Objects in project
+#details about an object are below
+ objects:
+  button2:       # 2, header
+   id: 2
+   type: 'button'
+   style: 'rect'
+   size: [240,32]
+   join: 31
+   inactive:
+    <<: *border-black-transparent
+    <<: *bcolor-blue
+    text: 21
+   active:
+    <<: *border-black-transparent
+    <<: *bcolor-blue
+    text: 21
+
+  button3:       # 3 -- UP
+   id: 3
+   type: 'button'
+   style: 'oblong'
+   size: [64,32]
+   join: 32
+   inactive:
+    <<: *border-black-transparent
+    <<: *bcolor-yellow
+    text: 22
+   active:
+    <<: *border-black-transparent
+    <<: *bcolor-lavender
+    text: 22
+
+  button4:       # 4 -- LEFT
+   id: 4
+   type: 'button'
+   style: 'oblong'
+   size: [64,32]
+   join: 33
+   inactive:
+    <<: *border-black-transparent
+    <<: *bcolor-yellow
+    text: 23
+   active:
+    <<: *border-black-transparent
+    <<: *bcolor-lavender
+    text: 23
+
+  button5:       # 5 -- RIGHT
+   id: 5
+   type: 'button'
+   style: 'oblong'
+   size: [64,32]
+   join: 34
+   inactive:
+    <<: *border-black-transparent
+    <<: *bcolor-yellow
+    text: 24
+   active:
+    <<: *border-black-transparent
+    <<: *bcolor-lavender
+    text: 24
+ 
+  button6:       # 6 -- DOWN
+   id: 6
+   type: 'button'
+   style: 'oblong'
+   size: [64,32]
+   join: 35
+   inactive:
+    <<: *border-black-transparent
+    <<: *bcolor-yellow
+    text: 25
+   active:
+    <<: *border-black-transparent
+    <<: *bcolor-lavender
+    text: 25
+
+  RSSI7:
+   id: 7
+   type: 'RSSI'
+   size: [30,22] 
+   analog_join: 1000
+   scolor: [255,00,255,00]      # Signal color
+   ncolor: [255,80,80,80]       # Empty bar color
+   <<: *bcolor-blue             # background
+
+  CLOCK8:
+   id: 8
+   type: 'CLOCK'
+   size: [44,22]
+   analog_join: 1001
+   style: '24hr'                # 12hr or 24hr
+   text: 26
+   <<: *bcolor-blue             # background
+  
+  button9:       # 2, header
+   id: 9
+   type: 'button'
+   style: 'rect'
+   size: [240,32]
+#   join: 31
+   inactive:
+    <<: *border-black-transparent
+    <<: *bcolor-blue
+    text: 27
+   active:
+    <<: *border-black-transparent
+    <<: *bcolor-blue
+    text: 27
+
+# Gauge
+# Takes an analog join and displays its value with variable decimal point
+# Styles 0 -- XXXX, 1 -- XXX.X, etc 
+# Text value: default displayed if no update to join  (required)
+# Text tail : added to end of value displayed...ie %, #, etc (optional)
+
+  Gauge10:
+   id: 10
+   size: [30,10]
+   type: 'gauge'
+   style: 0           
+   text: 28
+   analog_join: 1001
+   <<: *bcolor-blue
+
+# Bar
+# Takes an analog join and creates a bar graph
+# style - hbar-left, hbar-right :  Horizontal bar 0-pos on left or right 
+#       - vbar-top, vbar-bottom :  Vertical bar 0-pos at bottom or top
+# min_value -- minimum value
+# max_value -- maximum value
+#  bar steps will be (max_value-min_value)/size
+#  size will either be width or height minus 2x border size
+# bcolor    -- background color
+# fcolor    -- forground/bar color
+# border    -- border color ; exclude for no border
+# bthick    -- thickness in pixels of border ; exclude or zero for no border
+  
+  Bar11:
+   id: 11
+   #size: [30,200]
+   #style: 'vbar-top'
+   size: [200,15]
+   style: 'hbar-left'
+   #style: 'hbar-right'
+   type: 'bar'
+   max_value: 1500 
+   min_value: 0           
+   analog_join: 1001
+   #border: [255,0,255,0]
+   <<: *border-blue
+   bthick: 1
+   fcolor: [255,255,0,0]
+   #<<: *bcolor-blue
+   <<: *bcolor-black
+   #<<: *border-black-transparent
+ 
+ 
+ resources:
+  text21:         # 21 - ROKU
+   id: 21
+   type: 'text'
+   value: 'ROKU'
+   <<: *font-FreeSans
+   fontsize: 24
+   style: 'strong'
+   align: 'center'
+   ftcolor: [255,00,00,00]
+  text22:         # 22 - UP
+   id: 22
+   type: 'text'
+   value: 'UP'
+   <<: *font-FreeSans
+   fontsize: 14
+   style: 'strong'
+   align: 'center'
+   ftcolor: [255,0,0,0]
+  text23:         # 23 - LEFT
+   id: 23
+   type: 'text'
+   value: 'LEFT'
+   <<: *font-FreeSans
+   fontsize: 14
+   style: 'strong'
+   align: 'center'
+   ftcolor: [255,0,0,0]
+  text24:         # 24 - RIGHT
+   id: 24
+   type: 'text'
+   value: 'RIGHT'
+   <<: *font-FreeSans
+   fontsize: 14
+   style: 'strong'
+   align: 'center'
+   ftcolor: [255,0,0,0]
+  text25:         # 25 - DOWN
+   id: 25
+   type: 'text'
+   value: 'DOWN'
+   <<: *font-FreeSans
+   fontsize: 14
+   style: 'strong'
+   align: 'center'
+   ftcolor: [255,0,0,0]
+  text26:
+   id: 26
+   type: 'text'
+   value: ''
+   <<: *font-FreeSans
+   fontsize: 14
+   style: 'strong'
+   align: 'center'
+   ftcolor: [255,00,00,00]
+
+  text27:         # 27 - ROKU
+   id: 27
+   type: 'text'
+   value: 'ROKU'
+   indirect_text: 1
+   <<: *font-FreeSans
+   fontsize: 14
+   style: 'strong'
+   align: 'center'
+   ftcolor: [255,00,00,00]
+  
+  text28:         # 28 - Gauge
+   id: 28
+   type: 'text'
+   value: '...'
+#   tail: '%'
+   <<: *font-FreeSans
+   fontsize: 14
+   style: 'strong'
+   align: 'center'
+   ftcolor: [255,00,00,00]
+
+
+  image29:
+   id: 29
+   type: 'image'
+   imgfile: 'resources/AN.bmp'
+  
+  image30:
+   id: 30 
+   type: 'image'
+   imgfile: 'resources/cr-68x88.bmp'
+   
+   
