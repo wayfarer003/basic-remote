@@ -1,4 +1,4 @@
-# touch-remote
+# basic touch-remote
 
 Simple touch panel remote framework.
 Uses a YAML file to create the page configuration.
