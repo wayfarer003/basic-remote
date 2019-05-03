@@ -12,11 +12,15 @@ project:
  master: '192.168.160.21'
  port: '41794'
  idx: 22
+ screen_size: [240, 320]
+
 
 # Global defines -- Used as macros below
  globals:
   font-FreeSans: &font-FreeSans
    font: 'resources/FreeSans.ttf'
+  font-Swiss911: &font-Swiss911
+   font: 'resources/swiss9U.TTF'
   border-black-transparent: &border-black-transparent
    border: [0, 0, 0, 0]
   border-blue: &border-blue
@@ -29,6 +33,28 @@ project:
    bcolor: [255, 204, 153, 204]
   bcolor-black: &bcolor-black
    bcolor: [255, 0, 0, 0]
+
+ systemObjs:
+    sobj1:
+        id: 4000
+        rssi_join: 30             # analog value
+        type: 'bletag'              # Generic BLE tag RSSI value
+        mac: 'f1:87:a2:cc:1b:cc'
+
+    sobj2:
+        id: 4001
+        type: 'ruuvie'              # Ruuvie tag
+        mac: 'e5:b3:40:ea:56:48'
+        rssi_join: 4001
+        temp_join: 4002
+        humidity_join: 4003
+        pressure_join: 4004
+        accel_x_join: 4005
+        accel_y_join: 4006
+        accel_z_join: 4007
+        battery_join: 4008
+        
+ 
 
  page1:          # 1
   id: 1
@@ -285,7 +311,7 @@ project:
    id: 21
    type: 'text'
    value: 'ROKU'
-   <<: *font-FreeSans
+   <<: *font-Swiss911
    fontsize: 24
    style: 'strong'
    align: 'center'

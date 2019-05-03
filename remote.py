@@ -11,12 +11,15 @@ from twisted.internet.protocol import DatagramProtocol
 from twisted.internet.task import LoopingCall
 
 import backends.Demo.demo as CS
+import blebeacon as ble
 
-# ********** Globals *********
+
+# ---------- Globals ----------
 
 Port=41794
 master='127.0.0.1'
-
+screen_size=(240,320)
+idx=1
 
 # System joins
 ## Analog
@@ -32,7 +35,7 @@ RSSIMAX=-45
 RSSIMIN=-100
 RSSIBARS=5
 
-# ******************* 
+# ----------------------------
 
 # Tell the RPi to use the TFT screen and that it's a touchscreen device
 
@@ -42,11 +45,13 @@ if os.name != "nt":
  os.putenv('SDL_MOUSEDRV'   , 'TSLIB')
  os.putenv('SDL_MOUSEDEV'   , '/dev/input/touchscreen')
 
-# ******************
+# ----------------------------
 
 obj_list={}         # list of objects
 resource_list={}    # list of resources
 page={}             # objs in a page
+sys_objs_list={}    # system objs in project
+
 join={}             # joins
 analog_join={}      # input analog joins
 serial_join={}      # input serial joins
@@ -54,6 +59,7 @@ join_press={}       # output digital joins
 active_list={}      # list of button press zones
 images={}           # list of images in active page
 
+copy_analog_join={} # copy of analog joins
 
 
 def error(string):
@@ -104,10 +110,30 @@ def process_objects(objs):
  for i in keys:
   obj_list[objs[i]['id']]=objs[i]
 
+# ----------------------------
+# System objs
+# - At the moment these are just BLE beacons
+# - Expectation is that this catagory will include other HW peripherals
+# ----------------------------
 
+def process_system_objects(objs):
+ if objs == '':
+   return
+ keys=dict.keys(objs)
+ for i in keys:
+  sys_objs_list[objs[i]['mac']]=objs[i]
+ return(sys_objs_list)
+
+# ---------------
 # read_project
+# ---------------
 
 def read_project(file):
+ global ble_scan
+ global master
+ global Port
+ global idx
+ global screen_size
 
  with open(file, 'r') as fp:
     read_data = yaml.load(fp)
@@ -118,20 +144,28 @@ def read_project(file):
   proj=read_data.get('project')
 
 #*** Get project setup values ***
-  master=proj.get('master', '127.0.0.1')
-  Port=proj.get('port', 41794)
-  idx=proj.get('idx',1)
-#***********
+  master=proj.get('master', master)
+  Port=int(proj.get('port', Port))
+  idx=proj.get('idx',idx)
+
+  (a,b)=screen_size
+  (w,h)=proj.get('screen_size',[a,b])
+  screen_size=(w,h)
+
+# ----------------------------
   res=proj.get('resources','')
   process_resources(res)
   objs=proj.get('objects','')
   process_objects(objs)
+  sys_objs_list=proj.get('systemObjs','')
+  sys_objs_list=process_system_objects(sys_objs_list)
+  ble_scan=ble.BLE_beacon(sys_objs_list)
   keys=dict.keys(proj)
   count=1
 
-# ********************
+# ----------------------------
 # Generate list of pages in project and insert their display list of objects
-# ********************
+# ----------------------------
 
   for i in keys:
    if 'page' in i:
@@ -146,10 +180,10 @@ def read_project(file):
     page[id]=proj[i]
     page[id]['view']=view
 
-# **************************
+# ----------------------------
 # Generate active press regions
 # dict referenced by page join
-# *************************
+# ----------------------------
 
     obj_zones={}
     for v in view:
@@ -161,10 +195,10 @@ def read_project(file):
        obj_zones[v]={'rect':pygame.Rect(x, y, w, h),'join':obj_list[objid]['join']}
        active_list[id]=obj_zones
 
-# ****************
+# ----------------------------
 # add text to rectangle
 # Rectable Pos, Size
-# ********************
+# ----------------------------
 
 def add_text(text,pos,size):
  if(text):
@@ -193,9 +227,9 @@ def add_text(text,pos,size):
    pass
   FONT.render_to(screen, loc, value, color)
 
-# ************************
+# ----------------------------
 # ***** Draw Routines ****
-# ***********************
+# ----------------------------
 
 def put_image(screen, id, pos):
  if id != 0:
@@ -215,9 +249,9 @@ def rect(screen,pos,size,bcolor,fcolor,fthick,text,image):
   put_image(screen, image, pos)
  add_text(text,pos,size) 
 
-# *************
+# ----------------------------
 # Oblong button
-# *************
+# ----------------------------
   
 def oblong(screen,pos,size,bcolor,fcolor,fthick,text,image):
  if(fthick>0):
@@ -237,16 +271,16 @@ def oblong(screen,pos,size,bcolor,fcolor,fthick,text,image):
   put_image(screen, image, pos)
   add_text(text,pos,size)
 
-# *****************
+# ----------------------------
 # Center Cross Hair
-# *****************
+# ----------------------------
 def xhair():
  pygame.draw.lines(screen, (255,0,0), False, [(0,320/2),(240,320/2)], 1)
  pygame.draw.lines(screen, (255,0,0), False, [(240/2,0),(240/2,320)], 1)
 
-# *****************
+# ----------------------------
 #  RSSI Gauge
-# *****************
+# ----------------------------
 def RSSI(screen,pos,size,scolor,ncolor,bcolor,sig):
  (x,y)=pos
  (w,h)=size
@@ -272,13 +306,13 @@ def RSSI(screen,pos,size,scolor,ncolor,bcolor,sig):
   sigcount += sigstep
   pygame.draw.rect(screen, pelcolor,((x+i*xpels,y+ypels*(4-i)),(ypels,ypels+ypels*i)),0)
 
-# *****************
+# ----------------------------
 # Gauge
 # Displays an analog gauge
 #   XXXX, XXX.X, etc
 # Takes an analog join and displays a value
 # Styles 0 -- XXXX, 1 -- XXX.X, etc
-# ****************
+# ----------------------------
 def Gauge(screen,text,pos,size,bcolor,style,sig):
  txt=""
  if sig in analog_join:               # if no analog value, use default
@@ -293,7 +327,7 @@ def Gauge(screen,text,pos,size,bcolor,style,sig):
  rect(screen,pos,size,bcolor,[0,0,0,0],0,text,0)
  pass
 
-# *****************
+# ----------------------------
 # Bar
 # Display an analog bar gauge
 # Takes an analog join and creates a bar graph
@@ -307,6 +341,7 @@ def Gauge(screen,text,pos,size,bcolor,style,sig):
 # fcolor    -- forground/bar color
 # border    -- border color ; exclude for no border
 # bthick    -- thickness in pixels of border ; exclude or zero for no border
+# ----------------------------
 
 def Bar(screen,pos,size,bcolor,fcolor,border,bthick,style,sig,max_value,min_value):
  start=(x,y)=pos
@@ -343,9 +378,9 @@ def Bar(screen,pos,size,bcolor,fcolor,border,bthick,style,sig,max_value,min_valu
  if bthick > 0:           # draw border and adjust bars for border
   pygame.draw.rect(screen, border,(pos,size),bthick)
 
-#****************
+# ----------------------------
 # Process list of images for a page
-#****************
+# ----------------------------
 
 def build_img(filename, size):
  img = pygame.image.load(filename)
@@ -382,9 +417,9 @@ def process_images(pg):
 
  print ("images",images)
 
-# **************
+# ----------------------------
 # Create the display list
-# ************** 
+# ----------------------------
 
 active_pg = 0
  
@@ -483,11 +518,11 @@ def process_disp_list() :
 # oblong(screen, (88,80),(64,32), yellow,black,0,text)
 # text={'value':'ROKU','font':'FreeSans.ttf','fontsize':14,'ftcolor': (0xff,0,00,00),'align':'center','style':'strong'} 
 
-# ****************
+# ----------------------------
 # Send join to remote side if not local system join
-# ****************
+# ----------------------------
 
-def emit_join(join,state):
+def emit_digital_join(join,state):
  if join < 1000:
   Remote_Act.DigitalOut(join, state) 
  else:
@@ -502,9 +537,9 @@ def clear_project():
  active_list={}          # list of button zones
 
 
-# ********************
+# ----------------------------
 #  Remote -- Remote control   ----------------
-# ********************
+# ----------------------------
 
 class Remote_net(CS.DemoProtocol):
 
@@ -517,9 +552,9 @@ class Remote_net(CS.DemoProtocol):
   self.SeqNum=0
   self.Output_SeqNum=0
 
-#***************
+# ----------------------------
 # Incoming joins from remote processor
-#***************
+# ----------------------------
 
  def AnalogIn(self, AnalogSig, AnalogValue):
   global analog_join
@@ -532,19 +567,18 @@ class Remote_net(CS.DemoProtocol):
 
   join[DigitalSig+1]=DigitalValue
 
-
  def SerialIn(self, SerialSig, SerialValue):
   global serial_join
 
   serial_join[SerialSig]=SerialValue
 
-#****************
+# ----------------------------
 # Write joins to remote processor
-#****************
+# ----------------------------
 
 
  def AnalogOut(self, Sig, value):
-  self.AnalogWrite(Sig, value, self.slot)
+  self.AnalogWrite(Sig, value, self.Slot)
 
  def SerialOut(self, Sig, data):
   pass
@@ -553,7 +587,19 @@ class Remote_net(CS.DemoProtocol):
   print("DigOut",Sig,data)
   self.DigitalWrite(Sig-1, data, self.Slot)
 
+# ----------------------------
 
+def update_analog_values(join_list):
+ for ii in join_list:
+  if ii < 1000:
+   if join_list[ii] != copy_analog_join.get(ii,0):
+    Remote_Act.AnalogOut(ii,join_list[ii])
+    copy_analog_join[ii]=join_list[ii]
+
+# -------------------------
+# Update slow joins
+# These are values that should update slowly either due to processing time or HW
+# -------------------------
 
 def update_slow_system_joins():
  global analog_join
@@ -570,10 +616,24 @@ def update_slow_system_joins():
 # Remote time in mins
  tm=time.localtime() 
  analog_join[TIME_JOIN]=tm[3]*60+tm[4] 
+
+# ----------------------------
+# update values 
+def update_fast_system_joins():
+ update_analog_values(analog_join)
  
 def process_system_joins(join,state):
  if join == SCREEN_OFF_JOIN:
   pass
+
+
+# ---------------------
+# Process system objects
+# This runs in a seperate thread due to blocking by ble library
+# ---------------------
+def SystemObjs():	
+ global analog_join
+ analog_join=ble_scan.scan(analog_join)
 
 def test_drawing():
  red=(255,0,0)
@@ -582,7 +642,7 @@ def test_drawing():
  black=(0,0,0)
 
 
-# **************** Main Loop *************************
+# ---------------- Main Loop -------------------------
 
 active_join=0
 frame_count=0
@@ -598,6 +658,7 @@ def game_tick():
  global down_x, down_y
 
 
+ update_fast_system_joins()
 # process_system_joins()
 # print (join) 
  screen.fill((0,0,0))
@@ -613,11 +674,11 @@ def game_tick():
       for i in al:
        if al[i]['rect'].collidepoint(event.pos):
         active_join=al[i]['join']
-        emit_join(active_join,True)
+        emit_digital_join(active_join,True)
     if(event.type is pygame.MOUSEBUTTONUP):
         down_x, down_y = 0, 0
         if active_join != 0:
-            emit_join(active_join,False)
+            emit_digital_join(active_join,False)
 #    join[active_join]=0
     if down_x or down_y:
         cur_x, cur_y = pygame.mouse.get_pos()
@@ -644,9 +705,9 @@ def game_tick():
 # pygame.time.wait(10)
 
 
-# **********************
+# ----------------------------
 # Program entry
-# **********************
+# ----------------------------
   
 filename = 'Project1.yaml'
 
@@ -662,18 +723,18 @@ myIP='192.168.160.217'
 controllerIP='192.168.160.202'
 mySlot=0x15
 
-#*********
+# ----------------------------
 # Define actors here
 # Some network protocols allow for multi-processor support
-#*********
+# ----------------------------
  
 Remote_Act=Remote_net(myIP, controllerIP, mySlot)
 
-#**********
+# ----------------------------
 # Setup slot to actor mapping
 # Also, send wakeup message to remote processor(s)
 # Slot, IP, actor
-#**********
+# ----------------------------
 
 remotes={mySlot:{'IP':controllerIP,'Act':Remote_Act}}
 Remote_Act.SetupRemotes(remotes,Port)
@@ -683,6 +744,9 @@ Remote_Act.SetupRemotes(remotes,Port)
 
 tick = LoopingCall(game_tick)
 tick.start(1.0 / DESIRED_FPS).addErrback(twisted.python.log.err)
+
+sysobjs_tick = LoopingCall(SystemObjs)
+sysobjs_tick.start(1.0).addErrback(twisted.python.log.err)
 
 #reactor.listenUDP(Port, Remote_Act)   # uncomment if creating an actual network protocol
 reactor.run()

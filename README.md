@@ -15,6 +15,8 @@ Requirements:
  - pygame
  - twisted
  - pyyaml
+ - bluepy https://github.com/IanHarvey/bluepy
+ 
 
 Input and output signaling is based upon simple control signals to/from the external controller.
 Three join types are supported.
